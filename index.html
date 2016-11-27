@@ -14,6 +14,8 @@
         <div id="container"></div>
         <script id="test" type="text/html">
             \{{这样写就对了}}
+            名称：{{name1}}<br/>
+            兴趣：{{hobby}}<br/>
             <ul class="list">
             {{each list as item}}
                 {{if item.state==1}}
@@ -28,6 +30,9 @@
         </script>
         <script>
             var data = {
+                    name1:"高峰",
+                    sex:"男性",
+                    hobby:"玩玩",
                     list:[
                         {state:1,name:'高高'},
                         {state:2,name:'高高1'},

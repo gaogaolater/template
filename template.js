@@ -26,7 +26,7 @@
 
     function parseHtml(tpl, data) {
         tpl = tpl.replace(/\t/g, '  ').replace(/\n/g, '').replace(/\r/g, '').replace(/\"/g, "\'");
-        var body = ["var out = [];", "", "var result = out.join('');return result;"];
+        var body = ["var out = [];", "", "var result = out.join('');console.log(result);return result;"];
         var content = [];
         while (true) {
             var start = tpl.indexOf("{{");
@@ -54,7 +54,7 @@
                     }
                 }
                 if (flag == 0) {
-                    content.push("out.push(" + express + ");");
+                    content.push("out.push(typeof "+express+" !== 'undefined' ? "+express+":arguments[0]['"+express+"']);");
                 }
                 tpl = tpl.substring(end + 2);
             }
