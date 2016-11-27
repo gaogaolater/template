@@ -3,18 +3,25 @@
     <head>
         <title>template</title>
         <script src="template.js"></script>
+        <style>
+            .red{color:red;}
+            .blue{color:blue;}
+            .green{color:green;}
+            li{font-size:50px;}
+        </style>
     </head>
     <body>
         <div id="container"></div>
         <script id="test" type="text/html">
+            \{{这样写就对了}}
             <ul class="list">
-            {{each list as item i}}
+            {{each list as item}}
                 {{if item.state==1}}
-                <li class="red">item.name</li>
+                <li class="red">{{item.name}}</li>
                 {{else if item.state==2}}
-                <li class="blue">item.name</li>
+                <li class="blue">{{item.name}}</li>
                 {{else}}
-                <li class="green">item.name</li>
+                <li class="green">{{item.name}}</li>
                 {{/if}}
             {{/each}}
             </ul>

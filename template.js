@@ -4,64 +4,70 @@
     */
     var regMap = [
         // if语句开始 
-        { reg: /^if\\s+(.+)/i, val: function (condition) { return "if(" + condition + ") {"; } },
+        { reg: /^if\s+(.+)/i, val: "if($1) {" },
         // elseif 语句开始 
-        { reg: /^elseif\\s+(.+)/i, val: function (condition) { return "} else if(" + condition + ") {" } },
+        { reg: /^else\s+if\s+(.+)/i, val: "} else if($1) {" },
         // else语句结束 
         { reg: /^else/i, val: '} else {' },
         // if语句结束 
-        { reg: /^\/if/i, val: '}' },
+        { reg: /^\/if/i, val: '};' },
         // list语句开始 
-        { reg: /^each\\s+([\\S]+)\\s+as\\s+([\\S]+)/i, val: (all, arr, item) => { return `for(var __INDEX__=0;__INDEX__<${arr}.length;__INDEX__++) {var ${item}=${arr}[__INDEX__];var ${item}_index=__INDEX__;`; } },
+        {
+            reg: /^each\s+([\S]+)\s+as\s+([\S]+)/i,
+            val: "var argument = arguments[0];"
+            + "for(var __INDEX__=0;__INDEX__<argument.$1.length;__INDEX__++)"
+            + "{var $2 = argument.$1[__INDEX__];var index=__INDEX__;"
+        },
         // list语句结束 
-        { reg: /^\/\\s*list/i, val: '}' },
+        { reg: /^\/\s*each/i, val: '};' },
         // var 语句 
-        { reg: /^var\\s+(.+)/i, val: (all, expr) => { return `var ${expr};`; } }
+        { reg: /^var\s+(.+)/i, val: "var $1;" }
     ];
 
-    function html() {
-        var arr = [];
-        arr.push("<ul class=\"list\">");
-        for (var i = 0; i < list.length; i++) {
-            var item = list[i];
-            if (item.state == 1) {
-                arr.push("<li class=\"red\">" + item.name + "</li>");
-            } else if (item.state == 2) {
-                arr.push("<li class=\"blue\">" + item.name + "</li>");
-            } else {
-                arr.push("<li class=\"green\">" + item.name + "</li>");
-            }
-        }
-        arr.push("</ul>");
-        return arr.join("");
-    }
-
-    function parseHtml(tpl, data){
-        tpl = tpl.replace(/\t/g, '  ').replace(/\n/g, '').replace(/\r/g, '').replace(/\"/g,"\'");
-        console.log(tpl);
-        var body = ["var out = [];","","return out.join('')"];
+    function parseHtml(tpl, data) {
+        tpl = tpl.replace(/\t/g, '  ').replace(/\n/g, '').replace(/\r/g, '').replace(/\"/g, "\'");
+        var body = ["var out = [];", "", "var result = out.join('');return result;"];
         var content = [];
-        while(true){
+        while (true) {
             var start = tpl.indexOf("{{");
-            if(start==-1){
-                content.push("out.push(\""+tpl+"\");");
+            //转义
+            if (tpl.substr(start - 1, 1) == "\\") {
+                content.push("out.push(\"" + tpl.substring(0, start + 2) + "\");");
+                tpl = tpl.substring(start + 2);
+                continue;
+            }
+            if (start == -1) {
+                content.push("out.push(\"" + tpl + "\");");
                 break;
-            }else{
-                content.push("out.push(\""+tpl.substring(0,start)+"\");");
-                tpl = tpl.substring(start+2);
+            } else {
+                content.push("out.push(\"" + tpl.substring(0, start) + "\");");
+                tpl = tpl.substring(start + 2);
                 var end = tpl.indexOf("}}");
-                var express = tpl.substring(0,end);
-                console.log(express);
-                tpl = tpl.substring(end+2);
+                var express = tpl.substring(0, end);
+                var flag = 0;
+                for (var i = 0; i < regMap.length; i++) {
+                    var item = regMap[i];
+                    if (item.reg.test(express)) {
+                        content.push(express.replace(item.reg, item.val));
+                        flag = 1;
+                        break;
+                    }
+                }
+                if (flag == 0) {
+                    content.push("out.push(" + express + ");");
+                }
+                tpl = tpl.substring(end + 2);
             }
         }
-        body[1] = content.join("");
-        var func = new Function("data",body.join(""));
-        return func(data);
+        body[1] = content.join("\r\n");
+        var func = new Function("data", body.join(""));
+        console.log(body[1]);
+        var result = func(data);
+        return result;
     }
 
     template = function (id, data) {
         var html = document.getElementById(id).innerHTML;
-        return parseHtml(html,data);
+        return parseHtml(html, data);
     }
 })();

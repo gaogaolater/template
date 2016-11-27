@@ -1,0 +1,11 @@
+<script>
+var reg = /^if\s+(.+)/i;
+var str = "if a == 1";
+if(reg.test(str)){
+	var result = str.replace(reg,function(){
+		console.log(arguments);
+	});
+	console.log(result);
+}
+
+</script>
